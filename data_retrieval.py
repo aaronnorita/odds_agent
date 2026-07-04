@@ -24,6 +24,8 @@ def fetch_odds(sport, date):
         response = requests.get(api_endpoint, params=params)
         response.raise_for_status()
         data_response = response.json()
+        insert_odds_data(data_response)
+        return data_response
         
     except requests.exceptions.RequestException:
         print(f"Failed to connect to the ODDs API")
@@ -31,45 +33,48 @@ def fetch_odds(sport, date):
     except (ValueError, KeyError):
         print(f"No odds found for this request")
         return None
-    
-    
+
+
+def insert_odds_data(data_response):
     db_conn = sqlite3.connect("odds_data.db")
     cursor = db_conn.cursor()
-    cursor.execute("""
-    INSERT INTO games (
-        commence_time,
-        home_team ,
-        away_team,
-        home_score,
-        away_score,
-        odds_api_event_id,
-        sport,
-        league,
-        status      
-    )
-    VALUES ()
-              """)
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS bookmakers (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        odds_api_key TEXT NOT NULL,
-        name TEXT NOT NULL,
-        region TEXT NOT NULL      
-    )
-              """)
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS odds_snapshots (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        market_type TEXT NOT NULL,
-        spread_line REAL NOT NULL,
-        home_price REAL NOT NULL,
-        away_price REAL NOT NULL,
-        fetched_at TEXT NOT NULL,
-        game_id INTEGER NOT NULL,
-        bookmaker_id INTEGER NOT NULL,
-        FOREIGN KEY (game_id) REFERENCES games(id),
-        FOREIGN KEY (bookmaker_id) REFERENCES bookmakers(id)
-    )
-              """)
+    for game in data_response:
+        cursor.execute("""
+        INSERT INTO games (
+            odds_api_event_id,
+            sport,
+            league,
+            home_team,
+            away_team,
+            commence_time,
+            home_score,
+            away_score,
+            status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (game["id"], game["sport_key"], game["sport_title"], game["home_team"], game["away_team"], game["commence_time"], None, None, "scheduled"))
+        game_id = cursor.lastrowid
+        for bookmaker in game["bookmakers"]:
+            cursor.execute("""
+            INSERT INTO bookmakers (
+            odds_api_key,
+            name,
+            region
+            ) VALUES (?, ?, ?)
+            """, (bookmaker["key"], bookmaker["title"], "us"))
+            bookmaker_id = cursor.lastrowid
+            for market in bookmaker["markets"]:
+                cursor.execute("""
+                INSERT INTO odds_snapshots (
+                    market_type,
+                    spread_line,
+                    home_price,
+                    away_price,
+                    fetched_at,
+                    game_id,
+                    bookmaker_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (market["key"], None, market["outcomes"][0]["price"],market["outcomes"][1]["price"], market["last_update"], game_id, bookmaker_id))
     db_conn.commit()
-    db_conn.close()"""
+    db_conn.close()            
+    
+    
