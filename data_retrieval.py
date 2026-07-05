@@ -5,15 +5,11 @@ import sqlite3
 
 load_dotenv()
 
-def fetch_odds(sport, date):
-    """_summary_
-
-    Args:
-        sport (_type_): _description_
-        date (_type_): _description_
-
-    Returns:
-        _type_: _description_
+def fetch_odds(sport: str, date: str) -> list | None:
+    """
+    
+    Fetches odds for a given sport and date from The Odds API and inserts them into the database.
+    
     """
     try:
         api_key = os.getenv("THE_ODDS_API_KEY")
