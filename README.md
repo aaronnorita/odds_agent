@@ -2,7 +2,7 @@
 
 A Python CLI sports betting odds agent powered by LangChain and The Odds API. Ask questions in natural language and get real-time odds comparisons, line movements, and game data stored locally in SQLite.
 
-**Status:** In active development
+**Status:** Personal learning project, in active development — not production software.
 
 ## Setup
 
@@ -65,6 +65,14 @@ odds_agent/
 - `get_odds_for_game(game_id)` — planned
 - `compare_books_for_sport(sport)` — planned
 - `get_line_movement(game_id)` — planned
+
+## Roadmap
+
+**v1 (current):** CLI agent that fetches odds from The Odds API, stores them in SQLite, and answers natural language queries through LangChain-registered tools.
+
+**v2 (planned):** Odds calibration analysis. Convert stored prices (e.g. -150) into implied win probabilities, then compare against actual outcomes (`home_score` vs `away_score` in the `games` table) to measure how accurate the odds have historically been.
+
+**v3 (planned):** Line movement prediction. Builds on v2's output rather than standing alone — line movement is only meaningful in light of how reliable the odds are as a signal in the first place. Calibration analysis has to come first to establish that baseline; without it, a "prediction" about line movement would be indistinguishable from noise.
 
 ## API Keys
 
