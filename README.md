@@ -62,9 +62,9 @@ odds_agent/
 
 - `fetch_odds(sport, date)` — hits The Odds API and inserts results into SQLite. Registered.
 - `get_todays_games(sport)` — complete. Filters `games` by `sport` and today's date (via `substr(commence_time, 1, 10)`), returns a list of dicts.
-- `get_odds_for_game(game_id)` — in progress. Will `JOIN odds_snapshots` with `bookmakers` to return human-readable bookmaker names alongside odds.
-- `compare_books_for_sport(sport)` — planned
-- `get_line_movement(game_id)` — planned
+- `get_odds_for_game(game_id)` — complete. Joins `odds_snapshots` with `bookmakers` to return human-readable bookmaker names alongside odds for a single game.
+- `compare_books_for_sport(sport)` — in progress. Joins `odds_snapshots`, `bookmakers`, and `games` to compare odds across all bookmakers for every game in a sport, grouped by game.
+- `get_line_movement(game_id)` — not started
 
 ## Roadmap
 
