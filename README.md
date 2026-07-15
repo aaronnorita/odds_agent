@@ -2,8 +2,6 @@
 
 A Python CLI sports betting odds agent powered by LangChain and The Odds API. Ask questions in natural language and get real-time odds comparisons, line movements, and game data stored locally in SQLite.
 
-**Status:** Personal learning project, in active development — not production software.
-
 ## Setup
 
 1. Clone the repo and create a virtual environment:
@@ -25,31 +23,28 @@ A Python CLI sports betting odds agent powered by LangChain and The Odds API. As
 
 4. Run the agent:
 ```bash
-   python main.py
+   python agents.py
 ```
 
 ## Usage
 
-Type natural language queries at the prompt:
+There is no CLI loop yet (`main.py` is not started). Right now the only runnable entry point is `agents.py`, which sends one hardcoded query to the agent and prints the response:
 
-```
-> What are today's NBA games?
-> Compare moneyline odds for game 42 across all books
-> Show me line movement for the Lakers game
-> Fetch the latest NFL odds
+```bash
+python agents.py
 ```
 
-Type `exit` or `quit` to stop.
+`agents.py` currently only has `fetch_odds` registered as a tool, so the agent can pull fresh odds from The Odds API but can't yet query the local database — the `search_data.py` functions are written but not wired in. Once `main.py` exists and takes free-form input, this section will show a real transcript.
 
 ## Project Structure
 
 ```
 odds_agent/
-├── database.py        # SQLite schema creation — COMPLETE
-├── data_retrieval.py  # Fetches odds from The Odds API, inserts into SQLite — COMPLETE
-├── search_data.py     # Query functions against the database — IN PROGRESS
-├── agents.py          # LangChain agent with registered tools — IN PROGRESS
-└── main.py            # Entry point and CLI loop — NOT STARTED
+├── database.py        # SQLite schema creation
+├── data_retrieval.py  # Fetches odds from The Odds API, inserts into SQLite
+├── search_data.py     # Query functions against the database
+├── agents.py          # LangChain agent with registered tools
+└── main.py            # Entry point and CLI loop
 ```
 
 ## Database Schema
@@ -60,11 +55,11 @@ odds_agent/
 
 ## Agent Tools
 
-- `fetch_odds(sport, date)` — hits The Odds API and inserts results into SQLite. Registered.
-- `get_todays_games(sport)` — complete. Filters `games` by `sport` and today's date (via `substr(commence_time, 1, 10)`), returns a list of dicts.
-- `get_odds_for_game(game_id)` — complete. Joins `odds_snapshots` with `bookmakers` to return human-readable bookmaker names alongside odds for a single game.
-- `compare_books_for_sport(sport)` — in progress. Joins `odds_snapshots`, `bookmakers`, and `games` to compare odds across all bookmakers for every game in a sport, grouped by game.
-- `get_line_movement(game_id)` — not started
+- `fetch_odds(sport, date)` — hits The Odds API and inserts results into SQLite.
+- `get_todays_games(sport)` — filters `games` by `sport` and today's date (via `substr(commence_time, 1, 10)`), returns a list of dicts.
+- `get_odds_for_game(game_id)` — joins `odds_snapshots` with `bookmakers` to return human-readable bookmaker names alongside odds for a single game.
+- `compare_books_for_sport(sport)` — joins `odds_snapshots`, `bookmakers`, and `games` to compare odds across all bookmakers for every game in a sport, grouped by game.
+- `get_line_movement(game_id, market_type)` — joins `odds_snapshots` with `bookmakers`, filtered to one game and market type, ordered by `fetched_at` to show how the line moved over time per bookmaker.
 
 ## Roadmap
 
