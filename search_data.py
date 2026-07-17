@@ -2,7 +2,7 @@ import datetime
 import sqlite3
 
 
-def get_todays_games(sport):
+def get_todays_games(sport: str) -> list:
     """
     
     Fetches games for a given sport and todays date from the database.
@@ -29,7 +29,7 @@ def get_todays_games(sport):
     db_conn.close()
     return games
 
-def get_odds_for_game(game_id):
+def get_odds_for_game(game_id: int) -> list:
     """  
     
     Fetches odds for a given game (using the game_id, which is an int) from the database.
@@ -52,7 +52,7 @@ def get_odds_for_game(game_id):
     db_conn.close()
     return game_odds
 
-def compare_books_for_sport(sport):
+def compare_books_for_sport(sport: str) -> dict:
     
     """
     
@@ -85,7 +85,7 @@ def compare_books_for_sport(sport):
     return sports_odds
     
 
-def get_line_movement(game_id, market_type):
+def get_line_movement(game_id: int, market_type: str) -> dict:
     """
     
     Fetches the line movement per a given game and market type. 
