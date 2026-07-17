@@ -8,7 +8,7 @@ def get_todays_games(sport):
     Fetches games for a given sport and todays date from the database.
     The parameter "sport" is a string that details exactly what sport to grab from the database.
     An example of this is 'americanfootball_ncaaf'.
-    The function returns a list of games for a given sport.
+    The function returns a list of games for todays date for a given sport.
     
     """
     
@@ -30,7 +30,12 @@ def get_todays_games(sport):
     return games
 
 def get_odds_for_game(game_id):
-
+    """  
+    
+    Fetches odds for a given game (using the game_id, which is an int) from the database.
+    This returns a list of dictionaries. Each dictionary has the bookmaker name, home price, and away price.
+    
+    """
     
     db_conn = sqlite3.connect("odds_data.db")
     db_conn.row_factory = sqlite3.Row
@@ -50,7 +55,10 @@ def get_odds_for_game(game_id):
 def compare_books_for_sport(sport):
     
     """
-    Fetches odds for a given game (using the game_id) from the database.
+    
+    Fetches the games for a given sport and the odds by each bookmaker
+    This returns a dictionary of lists for games. The key value pair for this dictionary is the game_id (int) and the list for that game.
+    In each list, there is a dictionary with the following key value pairs: bookmaker name, home & away price.
 
     """
     
@@ -78,6 +86,16 @@ def compare_books_for_sport(sport):
     
 
 def get_line_movement(game_id, market_type):
+    """
+    
+    Fetches the line movement per a given game and market type. 
+    Inputs are a game_id and a market_type. This can be moneyline, spreads, etc.
+    This returns a dictionary of lists with dictionaries inside them. The first dict has a bookmaker as the key and the list as the value.
+    The keys and values are the market type (moneyline, spreads, etc.), home and away prices, and when these were recorded.
+    
+    """
+    
+    
     db_conn = sqlite3.connect("odds_data.db")
     db_conn.row_factory = sqlite3.Row
     cursor = db_conn.cursor()
