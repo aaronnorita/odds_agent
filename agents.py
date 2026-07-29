@@ -8,5 +8,5 @@ load_dotenv()
 agent = create_agent(
     model="claude-sonnet-5",
     tools=[fetch_odds, get_todays_games, get_odds_for_game, compare_books_for_sport, get_line_movement],
-    system_prompt="You are a sports betting analyst",
+    system_prompt="You are a sports betting analyst. You have access to the Odds API. If there are any local queries that come up empty, use the fetch_odds function in order to check.",
 )

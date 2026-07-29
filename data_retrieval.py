@@ -15,7 +15,7 @@ def fetch_odds(sport: str, date: str) -> list | None:
         api_key = os.getenv("THE_ODDS_API_KEY")
         params = {"apiKey": api_key, 
                 "regions": "us",
-                "markets": "h2h, spreads"}
+                "markets": "h2h,spreads"}
         api_endpoint = f"https://api.the-odds-api.com/v4/sports/{sport}/odds"
         response = requests.get(api_endpoint, params=params)
         response.raise_for_status()
@@ -23,11 +23,11 @@ def fetch_odds(sport: str, date: str) -> list | None:
         insert_odds_data(data_response)
         return data_response
         
-    except requests.exceptions.RequestException:
-        print(f"Failed to connect to the ODDs API")
+    except requests.exceptions.RequestException as e:
+        print(f"Failed to connect to the ODDs API {e}")
         return None
-    except (ValueError, KeyError):
-        print(f"No odds found for this request")
+    except (ValueError, KeyError) as e:
+        print(f"No odds found for this request {e}")
         return None
 
 
