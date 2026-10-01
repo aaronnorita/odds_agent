@@ -21,9 +21,9 @@ def create_table():
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS bookmakers (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        odds_api_key TEXT NOT NULL,
+        odds_api_key TEXT NOT NULL UNIQUE,
         name TEXT NOT NULL,
-        region TEXT NOT NULL      
+        region TEXT NOT NULL
     )
               """)
     cursor.execute("""

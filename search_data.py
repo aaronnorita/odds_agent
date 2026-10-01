@@ -58,19 +58,19 @@ def compare_books_for_sport(sport: str) -> dict:
     
     Fetches the games for a given sport and the odds by each bookmaker
     This returns a dictionary of lists for games. The key value pair for this dictionary is the game_id (int) and the list for that game.
-    In each list, there is a dictionary with the following key value pairs: bookmaker name, home & away price.
+    In each list, there is a dictionary with the following key value pairs: bookmaker name, market_type (h2h or spreads), home & away price.
 
     """
     
     db_conn = sqlite3.connect("odds_data.db")
     db_conn.row_factory = sqlite3.Row
     cursor = db_conn.cursor()
-    cursor.execute(""" 
-        SELECT odds_snapshots.game_id, bookmakers.name, odds_snapshots.home_price, odds_snapshots.away_price
+    cursor.execute("""
+        SELECT odds_snapshots.game_id, odds_snapshots.market_type, bookmakers.name, odds_snapshots.home_price, odds_snapshots.away_price
         FROM odds_snapshots
         INNER JOIN bookmakers ON bookmakers.id=odds_snapshots.bookmaker_id
         INNER JOIN games ON games.id=odds_snapshots.game_id
-        WHERE games.sport = ?;           
+        WHERE games.sport = ?;
                    """,
                    (sport,))
     sport_cols = cursor.fetchall()
@@ -80,7 +80,7 @@ def compare_books_for_sport(sport: str) -> dict:
     for game in all_sport_odds:
         if game['game_id'] not in sports_odds:
             sports_odds[game['game_id']] = []
-        sports_odds[game['game_id']].append({"name": game['name'], "home_price": game['home_price'], "away_price": game['away_price']})
+        sports_odds[game['game_id']].append({"name": game['name'], "market_type": game['market_type'], "home_price": game['home_price'], "away_price": game['away_price']})
     
     return sports_odds
     

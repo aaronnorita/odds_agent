@@ -40,7 +40,7 @@ flowchart LR
 | File | Status | Notes |
 |---|---|---|
 | `database.py` | ✅ Complete | Schema for `games`, `bookmakers`, `odds_snapshots` |
-| `data_retrieval.py` | ✅ Complete | `fetch_odds` + `insert_odds_data`; active bug below |
+| `data_retrieval.py` | ✅ Complete | `fetch_odds` + `insert_odds_data` |
 | `search_data.py` | ✅ Complete | All four query functions written, typed, and documented |
 | `agents.py` | ✅ Complete | `create_agent` (model `claude-sonnet-5`) with all five tools registered |
 | `main.py` | ✅ Complete | Interactive CLI loop (`while session is True`) |
@@ -61,7 +61,7 @@ odds_snapshots:   id, game_id, bookmaker_id, market_type, home_price,
 
 ## Agent Tools
 
-- `fetch_odds(sport, date)` — hits The Odds API, deduplicates, inserts into SQLite
+- `fetch_odds(sport)` — hits The Odds API for current/upcoming odds, upserts games and bookmakers, inserts odds snapshots into SQLite
 - `get_todays_games(sport)` — today's games for a sport
 - `get_odds_for_game(game_id)` — all bookmaker odds for one game
 - `compare_books_for_sport(sport)` — odds across bookmakers, grouped by game
@@ -85,10 +85,6 @@ odds_snapshots:   id, game_id, bookmaker_id, market_type, home_price,
    ```
 4. Run `python3 main.py` to start the CLI agent loop. `create_table()` runs once automatically to initialize the database.
 
-## Known Issues
-
-- **Active blocker:** `sqlite3.IntegrityError: NOT NULL constraint failed: games.home_score` — newly fetched (upcoming/scheduled) games have no score yet, but `home_score`/`away_score` are currently defined `NOT NULL` in the schema. Fix in progress: allow these columns to be nullable at the schema level (not just filtered around in queries), since `NULL` (unknown) and `0` (a real score) mean different things.
-
 ## API Keys
 
 - The Odds API: [the-odds-api.com](https://the-odds-api.com)
@@ -96,9 +92,9 @@ odds_snapshots:   id, game_id, bookmaker_id, market_type, home_price,
 
 ## Roadmap
 
-**v1 (current):** CLI agent that fetches odds from The Odds API, stores them in SQLite, and answers natural language queries through LangChain-registered tools. Remaining before v1 is truly done: fix the nullable score column schema issue above, get a first fully clean end-to-end run, verify `compare_books_for_sport` and `get_line_movement` against real (not just empty-table) data, and capture a real terminal transcript for the README/portfolio.
+**v1 (current):** CLI agent that fetches odds from The Odds API, stores them in SQLite, and answers natural language queries through LangChain-registered tools. `home_score`/`away_score` (games) and `spread_line` (odds_snapshots) are now correctly nullable, and a first clean end-to-end run (fetch → insert → query → natural language answer) is confirmed against real WNBA odds data. Remaining before v1 is truly done: verify `compare_books_for_sport` and `get_line_movement` against real (not just empty-table) data, and capture a real terminal transcript for the README/portfolio.
 
-**v2 (planned):** Odds calibration analysis. Convert stored prices (e.g. -150) into implied win probabilities, then compare against actual outcomes (`home_score` vs `away_score` in the `games` table) to measure how accurate the odds have historically been.
+**v2 (planned):** Odds calibration analysis. Convert stored prices (e.g. -150) into implied win probabilities, then compare against actual outcomes (`home_score` vs `away_score` in the `games` table) to measure how accurate the odds have historically been. Blocker: those columns are `NULL` for every game right now — `fetch_odds` only hits the Odds API's `/odds` endpoint. Needs a new fetch function against the separate `/v4/sports/{sport}/scores` endpoint to actually populate results.
 
 **v3 (planned):** Line movement prediction. Builds on v2's output rather than standing alone — line movement is only meaningful in light of how reliable the odds are as a signal in the first place. Calibration analysis has to come first to establish that baseline; without it, a "prediction" about line movement would be indistinguishable from noise.
 

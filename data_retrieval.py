@@ -5,11 +5,12 @@ import sqlite3
 
 load_dotenv()
 
-def fetch_odds(sport: str, date: str) -> list | None:
+def fetch_odds(sport: str) -> list | None:
     """
-    
-    Fetches odds for a given sport and date from The Odds API and inserts them into the database.
-    
+
+    Fetches current odds for a given sport from The Odds API and inserts them into the database.
+    The Odds API's /odds endpoint only returns current/upcoming games, so there is no date filter.
+
     """
     try:
         api_key = os.getenv("THE_ODDS_API_KEY")
@@ -47,8 +48,13 @@ def insert_odds_data(data_response):
             away_score,
             status
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(odds_api_event_id) DO UPDATE SET
+            commence_time = excluded.commence_time,
+            home_team = excluded.home_team,
+            away_team = excluded.away_team
         """, (game["id"], game["sport_key"], game["sport_title"], game["home_team"], game["away_team"], game["commence_time"], None, None, "scheduled"))
-        game_id = cursor.lastrowid
+        cursor.execute("SELECT id FROM games WHERE odds_api_event_id = ?", (game["id"],))
+        game_id = cursor.fetchone()[0]
         for bookmaker in game["bookmakers"]:
             cursor.execute("""
             INSERT INTO bookmakers (
@@ -56,9 +62,14 @@ def insert_odds_data(data_response):
             name,
             region
             ) VALUES (?, ?, ?)
+            ON CONFLICT(odds_api_key) DO UPDATE SET
+                name = excluded.name,
+                region = excluded.region
             """, (bookmaker["key"], bookmaker["title"], "us"))
-            bookmaker_id = cursor.lastrowid
+            cursor.execute("SELECT id FROM bookmakers WHERE odds_api_key = ?", (bookmaker["key"],))
+            bookmaker_id = cursor.fetchone()[0]
             for market in bookmaker["markets"]:
+                spread_line = market["outcomes"][0].get("point") if market["key"] == "spreads" else None
                 cursor.execute("""
                 INSERT INTO odds_snapshots (
                     market_type,
@@ -69,7 +80,7 @@ def insert_odds_data(data_response):
                     game_id,
                     bookmaker_id
                 ) VALUES (?, ?, ?, ?, ?, ?, ?)
-                """, (market["key"], None, market["outcomes"][0]["price"],market["outcomes"][1]["price"], market["last_update"], game_id, bookmaker_id))
+                """, (market["key"], spread_line, market["outcomes"][0]["price"],market["outcomes"][1]["price"], market["last_update"], game_id, bookmaker_id))
     db_conn.commit()
     db_conn.close()            
     
