@@ -64,7 +64,7 @@ odds_snapshots:   id, game_id, bookmaker_id, market_type, home_price,
 - `fetch_odds(sport)` — hits The Odds API for current/upcoming odds, upserts games and bookmakers, inserts odds snapshots into SQLite
 - `get_todays_games(sport)` — today's games for a sport
 - `get_odds_for_game(game_id)` — all bookmaker odds for one game
-- `compare_books_for_sport(sport)` — odds across bookmakers, grouped by game
+- `compare_books_for_sport(sport)` — odds across bookmakers, grouped by game, with `market_type` (`h2h` or `spreads`) on each row
 - `get_line_movement(game_id, market_type)` — odds over time for one game/market, grouped by bookmaker
 
 ## Setup
@@ -92,7 +92,7 @@ odds_snapshots:   id, game_id, bookmaker_id, market_type, home_price,
 
 ## Roadmap
 
-**v1 (current):** CLI agent that fetches odds from The Odds API, stores them in SQLite, and answers natural language queries through LangChain-registered tools. `home_score`/`away_score` (games) and `spread_line` (odds_snapshots) are now correctly nullable, and a first clean end-to-end run (fetch → insert → query → natural language answer) is confirmed against real WNBA odds data. Remaining before v1 is truly done: verify `compare_books_for_sport` and `get_line_movement` against real (not just empty-table) data, and capture a real terminal transcript for the README/portfolio.
+**v1 (current):** CLI agent that fetches odds from The Odds API, stores them in SQLite, and answers natural language queries through LangChain-registered tools. `home_score`/`away_score` (games) and `spread_line` (odds_snapshots) are now correctly nullable, repeated fetches upsert instead of crashing or duplicating bookmakers, and a first clean end-to-end run (fetch → insert → query → natural language answer) is confirmed against real WNBA odds data. `compare_books_for_sport` has been verified against real data. Remaining before v1 is truly done: verify `get_line_movement` against real (not just empty-table) data, and capture a real terminal transcript for the README/portfolio.
 
 **v2 (planned):** Odds calibration analysis. Convert stored prices (e.g. -150) into implied win probabilities, then compare against actual outcomes (`home_score` vs `away_score` in the `games` table) to measure how accurate the odds have historically been. Blocker: those columns are `NULL` for every game right now — `fetch_odds` only hits the Odds API's `/odds` endpoint. Needs a new fetch function against the separate `/v4/sports/{sport}/scores` endpoint to actually populate results.
 
